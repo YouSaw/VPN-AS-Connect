@@ -2,6 +2,7 @@ import sys
 import requests
 import subprocess
 from colorama import Fore, Style
+import sqlite3
 from openpyn import root
 import time
 
@@ -93,15 +94,48 @@ def get_vpn_server_ip(server, port):
         openvpn_file.close()
         return vpn_server_ip
 
-def ip_asn_writeup(ip_list):
-    #NEED RESEARCH
-    #REQUEST FORMAT?
-    for entry in ip_list:
-        pass
+
+
+#Requests for IP/ASN Mapping
+#Returns ASN/SERVER Dict
+def server_asn_writeup(ip_server_list):
+    asn_server_map = {}
+    url = "https://stat.ripe.net/data/whois/data.json?resource="
+
+    for ip_server in ip_server_list:
+        print(ip_server)
+        json_response = requests.get(url + ip_server[0]).json()
+
+        highest_prec = 255
+        b_asn = 0
+        for entry in json_response['data']['irr_records']:
+            prec = get_ipprec_field(entry).split('/')[1]
+            asn = get_asn_field(entry)
+            if highest_prec > int(prec):
+                highest_prec = int(prec)
+                b_asn = int(asn)
+
+        asn_server_map[b_asn] = ip_server[1]
+
+
+#Helper parsing function
+def get_ipprec_field(json_data):
+    for entry in json_data:
+        print(entry['key'])
+        if entry['key'] == "route":
+            return entry['value']
+
+#Helper parsing function
+def get_asn_field(json_data):
+    for entry in json_data:
+        if entry['key'] == "origin":
+            return entry['value']
+
 
 #Create SQLite Database With SERVER/ASN mapping
-def server_asn_writeup(tcp):
-    update_config_files()
+def build_sql_server_asn_map(tcp):
+    ip_server_list = []
+    #update_config_files()
     protokoll = "tcp"
     if tcp == False:
         protokoll = "udp"
@@ -111,15 +145,12 @@ def server_asn_writeup(tcp):
         try:
             if entry[0] != get_vpn_server_ip(entry[1], protokoll):
                 continue
-            #PARSING
+            ip_server_list.append([entry[0], entry[1]])
         except FileNotFoundError:
             continue
-
+    server_asn_writeup(ip_server_list)
 
 #Testing
 if __name__ == '__main__':
-    server_data = get_server_data_from_api(tcp=False)
-    for entry in server_data:
-        if entry[0] != get_vpn_server_ip(entry[1],"udp"):
-            "Problem!!!"
+    build_sql_server_asn_map(False)
 
