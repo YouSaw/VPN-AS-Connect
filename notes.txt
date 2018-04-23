@@ -1,0 +1,5 @@
+Ubuntu 16.04
+sudo apt install openvpn
+sudo pip3 install openpyn
+
+python3
