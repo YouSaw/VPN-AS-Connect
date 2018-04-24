@@ -9,6 +9,7 @@ import time
 
 __basefilepath__ = "/usr/local/lib/python3.5/dist-packages/openpyn/"
 
+#update open vpn config files. Need root
 def update_config_files():
     root.verify_root_access("Root access needed to write files in " +
                             "'" + __basefilepath__ + "files/" + "'")
@@ -190,6 +191,21 @@ def build_sql_server_asn_map(tcp):
             continue
     server_asn_writeup(ip_server_list)
 
+#As the name states
+def get_server_by_asn(target_asn):
+    conn = sqlite3.connect('asn_server_ip.db')
+    c = conn.cursor()
+    c.execute("SELECT server FROM asn_server WHERE asn =  '%s'" % target_asn)
+    rows = c.fetchall()
+    c.close()
+
+    if len(rows) == 0:
+        return 0
+
+    rows = [row[0] for row in rows]
+    return rows
+
+#Debug
 def print_sql_database(db):
     conn = sqlite3.connect(db)
     c = conn.cursor()
@@ -201,11 +217,12 @@ def print_sql_database(db):
     print(len(rows))
     c.close()
 
+#Debug
 def print_unique_as_sql_database(db):
     conn = sqlite3.connect(db)
     c = conn.cursor()
 
-    data = c.execute("SELECT asn, COUNT(1) FROM asn_server GROUP BY asn ORDER BY asn")
+    c.execute("SELECT asn, COUNT(1) FROM asn_server GROUP BY asn ORDER BY asn")
     res = c.fetchall()
     print("\n")
     for row in res:
@@ -218,4 +235,6 @@ if __name__ == '__main__':
     #build_sql_server_asn_map(False)
     print_sql_database('asn_server_ip.db')
     print_unique_as_sql_database('asn_server_ip.db')
+    server = get_server_by_asn(9009)
+    print(server)
 
