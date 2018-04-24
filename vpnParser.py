@@ -1,8 +1,9 @@
 import sys
 import requests
 import subprocess
-from colorama import Fore, Style
 import sqlite3
+import grequests
+from colorama import Fore, Style
 from openpyn import root
 import time
 
@@ -96,32 +97,72 @@ def get_vpn_server_ip(server, port):
 
 
 
-#Requests for IP/ASN Mapping
-#Returns ASN/SERVER Dict
+#Requests for server/ASN Mapping
+#Returns builds actual database
 def server_asn_writeup(ip_server_list):
+    print("[!] There are:",len(ip_server_list)," servers available!")
+
     asn_server_map = {}
     url = "https://stat.ripe.net/data/whois/data.json?resource="
 
-    for ip_server in ip_server_list:
-        print(ip_server)
-        json_response = requests.get(url + ip_server[0]).json()
 
+    ip_server_map = {}
+    urls = []
+    for entry in ip_server_list:
+        urls.append(url + entry[0])
+        ip_server_map[entry[0]] = entry[1]
+
+    results = []
+    MAX_CONNECTIONS = 50
+    for x in range(1, len(urls)+1, MAX_CONNECTIONS):
+        rs = (grequests.get(u) for u in urls[x:x+MAX_CONNECTIONS])
+        results.extend(grequests.map(rs))
+        print("[!]", len(urls)-x, "urls remaining!")
+        try:
+            json_response = results[x-1].json()
+        except Exception as ex:
+            print("[-] Exception was thrown:", ex)
+            json_response = "?"
+
+        print("[!] Responses are like: ", results[x-1], json_response)
+
+    conn = sqlite3.connect('asn_server_ip.db')
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS asn_server(asn INTEGER, server TEXT, ip TEXT)''')
+
+    for idx, response in enumerate(results):
         highest_prec = 255
         b_asn = 0
-        for entry in json_response['data']['irr_records']:
-            prec = get_ipprec_field(entry).split('/')[1]
-            asn = get_asn_field(entry)
-            if highest_prec > int(prec):
-                highest_prec = int(prec)
-                b_asn = int(asn)
+        try:
+            response = response.json()
+            for entry in response['data']['irr_records']:
+                prec = get_ipprec_field(entry).split('/')[1]
+                asn = get_asn_field(entry)
+                if highest_prec > int(prec):
+                    highest_prec = int(prec)
+                    b_asn = int(asn)
 
-        asn_server_map[b_asn] = ip_server[1]
+            ip = response['data']['resource']
+            serverName = ip_server_map[ip]
+            asn_server_map[b_asn] = serverName
+
+        except Exception as ex:
+            print("[-] Exception was thrown:", ex)
+            print("\n\n")
+            continue
+
+        c.execute("INSERT INTO asn_server VALUES (?,?,?)",(int(b_asn), serverName, ip))
+        conn.commit()
+
+        if idx % 100 == 0:
+            print_sql_database('asn_server_ip.db')
+
+    conn.close()
 
 
 #Helper parsing function
 def get_ipprec_field(json_data):
     for entry in json_data:
-        print(entry['key'])
         if entry['key'] == "route":
             return entry['value']
 
@@ -130,7 +171,6 @@ def get_asn_field(json_data):
     for entry in json_data:
         if entry['key'] == "origin":
             return entry['value']
-
 
 #Create SQLite Database With SERVER/ASN mapping
 def build_sql_server_asn_map(tcp):
@@ -150,7 +190,32 @@ def build_sql_server_asn_map(tcp):
             continue
     server_asn_writeup(ip_server_list)
 
+def print_sql_database(db):
+    conn = sqlite3.connect(db)
+    c = conn.cursor()
+    data = c.execute("SELECT * FROM asn_server")
+    rows = c.fetchall()
+
+    for row in rows:
+        print(row)
+    print(len(rows))
+    c.close()
+
+def print_unique_as_sql_database(db):
+    conn = sqlite3.connect(db)
+    c = conn.cursor()
+
+    data = c.execute("SELECT asn, COUNT(1) FROM asn_server GROUP BY asn ORDER BY asn")
+    res = c.fetchall()
+    print("\n")
+    for row in res:
+        print("[!]", row)
+    print("[!] Unique AS:", len(res))
+    c.close()
+
 #Testing
 if __name__ == '__main__':
-    build_sql_server_asn_map(False)
+    #build_sql_server_asn_map(False)
+    print_sql_database('asn_server_ip.db')
+    print_unique_as_sql_database('asn_server_ip.db')
 
