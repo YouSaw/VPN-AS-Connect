@@ -7,10 +7,20 @@ from os import O_NONBLOCK, read
 
 
 def vpn_in_asrange(asn):
+    """
+    Gives all vpns in the given as
+    :param asn: AS-Number
+    :return: List of vpn strings
+    """
     server_list = vpnParser.get_server_by_asn(asn)
     return server_list
 
 def tunnel_to_as(asn):
+    """
+    Tunnels to a server in the given as
+    :param asn: AS-number
+    :return: True if tunneling was succesesfull
+    """
     server_list = vpn_in_asrange(asn)
     if len(server_list) == 0:
         print("[-] There is no server in this as range!")
@@ -25,6 +35,11 @@ def tunnel_to_as(asn):
 
 
 def connect_to(vpn):
+    """
+    Connects to a vpn
+    :param vpn: vpn name
+    :return: True if connection was established succesesfull
+    """
     try:
         proc = subprocess.Popen(["sudo", "openpyn", "-s",vpn],stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         flags = fcntl(proc.stdout, F_GETFL)  # get current p.stdout flags
@@ -51,6 +66,9 @@ def connect_to(vpn):
         return False
 
 def kill_vpn():
+    """
+    Kills all openvpn and openpyn connections via killall
+    """
     subprocess.run(["sudo", "openpyn", "-k"], stdout=subprocess.DEVNULL)
     print("[!] Killed the running openvpn process!")
     time.sleep(1)

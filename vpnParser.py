@@ -103,10 +103,8 @@ def get_vpn_server_ip(server, port):
 #Returns builds actual database
 def server_asn_writeup(ip_server_list):
     print("[!] There are:",len(ip_server_list)," servers available!")
-
     asn_server_map = {}
     url = "https://stat.ripe.net/data/whois/data.json?resource="
-
 
     ip_server_map = {}
     urls = []
@@ -207,7 +205,7 @@ def get_server_by_asn(target_asn):
 def print_sql_database(db):
     conn = sqlite3.connect(db)
     c = conn.cursor()
-    data = c.execute("SELECT * FROM asn_server")
+     c.execute("SELECT * FROM asn_server")
     rows = c.fetchall()
 
     for row in rows:
@@ -219,7 +217,6 @@ def print_sql_database(db):
 def print_unique_as_sql_database(db):
     conn = sqlite3.connect(db)
     c = conn.cursor()
-
     c.execute("SELECT asn, COUNT(1) FROM asn_server GROUP BY asn ORDER BY asn")
     res = c.fetchall()
     print("\n")
