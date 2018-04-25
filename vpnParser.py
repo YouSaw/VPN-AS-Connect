@@ -200,9 +200,6 @@ def get_server_by_asn(target_asn):
     rows = c.fetchall()
     c.close()
 
-    if len(rows) == 0:
-        return 0
-
     rows = [row[0] for row in rows]
     return rows
 
@@ -233,10 +230,9 @@ def print_unique_as_sql_database(db):
 
 #Testing
 if __name__ == '__main__':
+    asdasd
     #build_sql_server_asn_map(False)
     print_sql_database('asn_server_ip.db')
     print_unique_as_sql_database('asn_server_ip.db')
     server = get_server_by_asn(9009)
     print(server)
-
-1

@@ -1,6 +1,9 @@
 import vpnParser
 import subprocess
-#Used to connect/kill VPN
+import time
+
+from fcntl import fcntl, F_GETFL, F_SETFL
+from os import O_NONBLOCK, read
 
 
 def vpn_in_asrange(asn):
@@ -20,14 +23,39 @@ def tunnel_to_as(asn):
     print("[-] Could not connect a server out of",len(server_list),"servers!")
     return False
 
+
 def connect_to(vpn):
     try:
-        subprocess.run(["sudo", "openpyn", "-s",vpn], check=True, shell=True)
+        proc = subprocess.Popen(["sudo", "openpyn", "-s",vpn],stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        flags = fcntl(proc.stdout, F_GETFL)  # get current p.stdout flags
+        fcntl(proc.stdout, F_SETFL, flags | O_NONBLOCK)
+
+        output_string = ""
+        time.sleep(5)
+        while True:
+            try:
+                substring = read(proc.stdout.fileno(), 100).decode()
+                output_string += substring
+                print(substring, end="") #Debug
+                time.sleep(1)
+            except OSError:
+                break
+
+        print(output_string) #Debug
+        if "completed" in output_string:
+            return  True
+        return False
+
     except subprocess.CalledProcessError as openvpn_err:
         print("[-] Connection error",openvpn_err.output)
         return False
-    return True
 
 def kill_vpn():
-    pass
+    subprocess.run(["sudo", "openpyn", "-k"], stdout=subprocess.DEVNULL)
+    print("[!] Killed the running openvpn process!")
+    time.sleep(1)
+
+if __name__ == '__main__':
+    #kill_vpn()
+    tunnel_to_as(9009)
 
