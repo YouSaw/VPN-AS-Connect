@@ -5,6 +5,7 @@ import sqlite3
 import grequests
 from colorama import Fore, Style
 from openpyn import root
+from openpyn import openpyn
 import time
 
 __basefilepath__ = "/usr/local/lib/python3.5/dist-packages/openpyn/"
@@ -238,3 +239,4 @@ if __name__ == '__main__':
     server = get_server_by_asn(9009)
     print(server)
 
+1
