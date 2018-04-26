@@ -205,7 +205,7 @@ def get_server_by_asn(target_asn):
 def print_sql_database(db):
     conn = sqlite3.connect(db)
     c = conn.cursor()
-     c.execute("SELECT * FROM asn_server")
+    c.execute("SELECT * FROM asn_server")
     rows = c.fetchall()
 
     for row in rows:

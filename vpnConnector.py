@@ -51,13 +51,13 @@ def connect_to(vpn):
             try:
                 substring = read(proc.stdout.fileno(), 100).decode()
                 output_string += substring
-                print(substring, end="") #Debug
+                #print(substring, end="") #Debug
                 time.sleep(1)
             except OSError:
                 break
 
         print(output_string) #Debug
-        if "completed" in output_string:
+        if "Initialization Sequence Completed" in output_string:
             return  True
         return False
 
@@ -74,6 +74,7 @@ def kill_vpn():
     time.sleep(1)
 
 if __name__ == '__main__':
-    #kill_vpn()
     tunnel_to_as(9009)
+    time.sleep(10)
+    kill_vpn()
 
