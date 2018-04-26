@@ -26,6 +26,7 @@ def tunnel_to_as(asn):
         print("[-] There is no server in this as range!")
         return False
     for entry in server_list:
+        print("[!] Try to connect to", entry, "please wait...")
         is_connected = connect_to(entry)
         if is_connected:
             print("[+] Connection was made!")
@@ -46,17 +47,24 @@ def connect_to(vpn):
         fcntl(proc.stdout, F_SETFL, flags | O_NONBLOCK)
 
         output_string = ""
-        time.sleep(5)
+        time.sleep(15)
+
+        attemps = 0
         while True:
             try:
-                substring = read(proc.stdout.fileno(), 100).decode()
+                substring = read(proc.stdout.fileno(), 1024).decode()
                 output_string += substring
                 #print(substring, end="") #Debug
-                time.sleep(1)
             except OSError:
-                break
-
-        print(output_string) #Debug
+                if attemps == 0:
+                    time.sleep(5)
+                elif attemps == 1:
+                    time.sleep(10)
+                elif attemps == 2:
+                    break
+                attemps += 1
+                continue
+        #print(output_string) #Debug
         if "Initialization Sequence Completed" in output_string:
             return  True
         return False
@@ -74,7 +82,7 @@ def kill_vpn():
     time.sleep(1)
 
 if __name__ == '__main__':
-    tunnel_to_as(9009)
-    time.sleep(10)
+    #tunnel_to_as(9009)
+    #time.sleep(10)
     kill_vpn()
 

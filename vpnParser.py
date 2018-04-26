@@ -64,7 +64,6 @@ def get_json(url):
 
 # Gets json data, from api.nordvpn.com. filter servers by protocoll.
 def get_server_data_from_api(tcp):
-
     url = "https://api.nordvpn.com/server"
     json_response = get_json(url)
     remaining_servers = []
@@ -98,7 +97,6 @@ def get_vpn_server_ip(server, port):
         return vpn_server_ip
 
 
-
 #Requests for server/ASN Mapping
 #Returns builds actual database
 def server_asn_writeup(ip_server_list):
@@ -124,7 +122,7 @@ def server_asn_writeup(ip_server_list):
             print("[-] Exception was thrown:", ex)
             json_response = "?"
 
-        print("[!] Responses are like: ", results[x-1], json_response)
+            print("[!] Responses are like: ", results[x-1], json_response)
 
     conn = sqlite3.connect('asn_server_ip.db')
     c = conn.cursor()
@@ -197,7 +195,6 @@ def get_server_by_asn(target_asn):
     c.execute("SELECT server FROM asn_server WHERE asn =  '%s'" % target_asn)
     rows = c.fetchall()
     c.close()
-
     rows = [row[0] for row in rows]
     return rows
 
@@ -207,7 +204,6 @@ def print_sql_database(db):
     c = conn.cursor()
     c.execute("SELECT * FROM asn_server")
     rows = c.fetchall()
-
     for row in rows:
         print(row)
     print(len(rows))
@@ -227,7 +223,6 @@ def print_unique_as_sql_database(db):
 
 #Testing
 if __name__ == '__main__':
-    asdasd
     #build_sql_server_asn_map(False)
     print_sql_database('asn_server_ip.db')
     print_unique_as_sql_database('asn_server_ip.db')

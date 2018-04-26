@@ -3,7 +3,6 @@ import vpnConnector
 import time
 import subprocess
 #Today:
-#Python3 Support for BGP
 #Abgegriffene Daten Analysieren
 #Own Database / Lookup Sites?
 #Sutruktur BA verfeinern
@@ -19,7 +18,7 @@ def traceroute(ip):
     stdout = stdout.decode()
     return stdout
 
-def parse_asn_path(traceroute_output):
+def parse_asn_path(traceroute_output, ip):
     """
     :param traceroute_output: raw traceroute output
     :return: list of asn
@@ -28,7 +27,7 @@ def parse_asn_path(traceroute_output):
     for entry in traceroute_output.splitlines()[1:]:
         asn_list = entry[entry.find("[") + 1:entry.find("]")].split("/")
         asn_path.append(asn_list[0])
-    print("[+] Path taken: ", asn_path)
+    print("[+] Path taken to",ip,":", asn_path)
     return asn_path
 
 
@@ -49,4 +48,8 @@ def validate_ip_path(taken_asn_path, announced_asn_path,  missing_link_list, pre
 
 
 if __name__ == '__main__':
-    traceroute("google.de")
+    to_trace = "google.de"
+    vpnConnector.tunnel_to_as(9009)
+    trace_output = traceroute(to_trace)
+    asn_path = parse_asn_path(trace_output ,to_trace)
+    vpnConnector.kill_vpn()
