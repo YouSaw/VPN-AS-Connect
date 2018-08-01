@@ -31,6 +31,12 @@ def parse_asn_path(traceroute_output, ip):
     return asn_path
 
 
+
+def validate_path(taken_path, links):
+    if links in taken_path:
+        pass
+
+
 #Policen überlegen
 def validate_ip_path(taken_asn_path, announced_asn_path,  missing_link_list, prefix_owners):
 

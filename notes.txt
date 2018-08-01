@@ -3,3 +3,40 @@ sudo apt install openvpn
 sudo pip3 install openpyn
 
 python3
+
+
+Traceroute geht durch VPN wenn ip geadded ist mit via.
+Traceroute macht weniger responses wenn nicht auch alle anderen ips geadded sind.
+
+yousee@yousee:~$ sudo ip route del 172.217.16.195
+yousee@yousee:~$ sudo ip route add 172.217.16.195 via 10.8.8.1 dev tun0
+yousee@yousee:~$ sudo ip route add 128.0.0.0/1 via 10.8.8.1 dev tun0
+yousee@yousee:~$ sudo ip route add 0.0.0.0/1 via 10.8.8.1 dev tun0
+
+
+yousee@yousee:~$ sudo traceroute google.de -I
+traceroute to google.de (172.217.16.195), 30 hops max, 60 byte packets
+ 1  localhost (10.8.8.1)  50.909 ms  53.127 ms  57.500 ms
+ 2  * * *
+ 3  * * *
+ 4  * * *
+ 5  * * *
+ 6  * * *
+ 7  * * *
+ 8  * * *
+ 9  * * *
+10  * * *
+11  fra16s08-in-f3.1e100.net (172.217.16.195)  96.275 ms  99.218 ms  102.458 ms
+yousee@yousee:~$ sudo traceroute google.de -I
+traceroute to google.de (172.217.16.195), 30 hops max, 60 byte packets
+ 1  fritz.box (192.168.178.1)  1.047 ms  2.742 ms  3.063 ms
+ 2  dslb-188-108-144-001.188.108.pools.vodafone-ip.de (188.108.144.1)  15.225 ms  18.990 ms  19.356 ms
+ 3  * * *
+ 4  88.79.30.16 (88.79.30.16)  23.005 ms  24.291 ms  24.475 ms
+ 5  92.79.212.117 (92.79.212.117)  26.451 ms  27.295 ms  29.292 ms
+ 6  * 145.254.2.195 (145.254.2.195)  34.438 ms  34.429 ms
+ 7  145.254.2.195 (145.254.2.195)  35.658 ms  24.542 ms *
+ 8  72.14.213.64 (72.14.213.64)  26.252 ms  24.558 ms  24.363 ms
+ 9  108.170.251.193 (108.170.251.193)  26.851 ms  24.930 ms  25.821 ms
+10  216.239.40.59 (216.239.40.59)  26.368 ms  26.881 ms  26.912 ms
+11  fra16s08-in-f3.1e100.net (172.217.16.195)  25.712 ms  25.670 ms  24.755 ms

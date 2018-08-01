@@ -93,8 +93,21 @@ def get_vpn_server_ip(server, port):
             if "remote " in line:
                 vpn_server_ip = line[7:]
                 vpn_server_ip = vpn_server_ip[:vpn_server_ip.find(" ")]
-        openvpn_file.close()
-        return vpn_server_ip
+                openvpn_file.close()
+                return vpn_server_ip
+
+
+# Helper parsing function
+def get_ipprec_field(json_data):
+    for entry in json_data:
+        if entry['key'] == "route":
+            return entry['value']
+
+# Helper parsing function
+def get_asn_field(json_data):
+    for entry in json_data:
+        if entry['key'] == "origin":
+            return entry['value']
 
 
 #Requests for server/ASN Mapping
@@ -129,14 +142,14 @@ def server_asn_writeup(ip_server_list):
     c.execute('''CREATE TABLE IF NOT EXISTS asn_server(asn INTEGER, server TEXT, ip TEXT)''')
 
     for idx, response in enumerate(results):
-        highest_prec = 255
+        highest_prec = 1
         b_asn = 0
         try:
             response = response.json()
             for entry in response['data']['irr_records']:
                 prec = get_ipprec_field(entry).split('/')[1]
                 asn = get_asn_field(entry)
-                if highest_prec > int(prec):
+                if highest_prec < int(prec):
                     highest_prec = int(prec)
                     b_asn = int(asn)
 
@@ -158,20 +171,8 @@ def server_asn_writeup(ip_server_list):
     conn.close()
 
 
-#Helper parsing function
-def get_ipprec_field(json_data):
-    for entry in json_data:
-        if entry['key'] == "route":
-            return entry['value']
-
-#Helper parsing function
-def get_asn_field(json_data):
-    for entry in json_data:
-        if entry['key'] == "origin":
-            return entry['value']
-
 #Create SQLite Database With SERVER/ASN mapping
-def build_sql_server_asn_map(tcp):
+def build_sql_server_asn_map(tcp = False):
     ip_server_list = []
     #update_config_files()
     protokoll = "tcp"
@@ -223,8 +224,5 @@ def print_unique_as_sql_database(db):
 
 #Testing
 if __name__ == '__main__':
-    #build_sql_server_asn_map(False)
-    print_sql_database('asn_server_ip.db')
-    print_unique_as_sql_database('asn_server_ip.db')
-    server = get_server_by_asn(9009)
-    print(server)
+    #update_config_files()
+    build_sql_server_asn_map()

@@ -34,7 +34,7 @@ def tunnel_to_as(asn):
     print("[-] Could not connect a server out of",len(server_list),"servers!")
     return False
 
-
+#Todo ändern auf openvpn call direct
 def connect_to(vpn):
     """
     Connects to a vpn
